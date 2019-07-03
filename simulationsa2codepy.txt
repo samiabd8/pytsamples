@@ -1,0 +1,55 @@
+﻿#set seed, parameters
+import numpy as np 
+import math
+import matplotlib.pyplot as plt
+import statsmodels.api as sm
+import scipy as sci
+np.random.seed(1996)
+
+
+S = 1000
+N = 2000
+beta_0 = 0
+beta_1 = 1
+mu_x = 0
+sigma_x1 = 1
+sigma_e = 1
+
+
+#run loop and store estimated values of beta
+store_beta = np.zeros((S,2))
+for i in range(0,S):
+    intr = (np.array([np.ones((N,))])).T
+    x1 = (np.array([np.random.standard_normal(N,)])).T
+    e = (np.array([np.random.standard_normal(N,)])).T
+    y = beta_0 + beta_1*x1 + e
+    x = np.concatenate((intr,x1),axis=1)
+    model = sm.OLS(y,x).fit()
+    betahat = model.params
+    betahat_sd = model.bse
+    store_beta[i,0] = betahat[1]
+    store_beta[i,1] = betahat_sd[1]
+#first column is beta1 estimate while the second is the standard error of this estimate
+
+
+sci.stats.describe(store_beta)
+
+
+#plot beta1 estimates across simulations
+plt.plot(store_beta[:,0])
+#we disregard estimates for beta0 since the true value is zero 
+
+
+#plot standard errors for beta1 estimates across simulations
+plt.plot(store_beta[:,1])
+
+
+#plot a histogram of the beta1 estimates 
+plt.hist(store_beta[:,0])
+#we notice the distribution takes the for of a bell shape from a normal distribution
+#compare to theory
+np.mean(store_beta[:,0])
+np.var(store_beta[:,0])
+#theoretical variance
+true_var = np.dot(sigma_e,np.linalg.inv((np.dot(x.T,x))))
+#the variance of beta1 across simulations is identical to the theoretical variance
